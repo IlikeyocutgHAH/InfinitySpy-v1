@@ -1,0 +1,196 @@
+-- Instances:
+local UI = Instance.new("ScreenGui")
+local BG = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local Title = Instance.new("TextLabel")
+local Frame = Instance.new("Frame")
+local ScrollingFrame = Instance.new("ScrollingFrame")
+local UIListLayout = Instance.new("UIListLayout")
+local Template = Instance.new("TextLabel")
+
+-- Properties:
+UI.Name = "UI"
+UI.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+UI.Enabled = true
+UI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+BG.Name = "BG"
+BG.Parent = UI
+BG.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+BG.BorderColor3 = Color3.fromRGB(0, 0, 0)
+BG.BorderSizePixel = 0
+BG.Position = UDim2.new(0.23, 0, 0.31, 0)
+BG.Size = UDim2.new(0, 502, 0, 307)
+
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = BG
+
+Title.Name = "Title"
+Title.Parent = BG
+Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Title.BackgroundTransparency = 1.000
+Title.Position = UDim2.new(0.02, 0, 0.03, 0)
+Title.Size = UDim2.new(0.16, 0, 0.07, 0)
+Title.Font = Enum.Font.Arial
+Title.Text = "InfinitySpy"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextScaled = true
+Title.TextWrapped = true
+
+Frame.Parent = BG
+Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Frame.BackgroundTransparency = 1.000
+Frame.Position = UDim2.new(0.02, 0, 0.13, 0)
+Frame.Size = UDim2.new(0, 482, 0, 257)
+
+ScrollingFrame.Parent = Frame
+ScrollingFrame.Active = true
+ScrollingFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ScrollingFrame.BackgroundTransparency = 1.000
+ScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
+ScrollingFrame.ScrollBarThickness = 5
+
+UIListLayout.Parent = ScrollingFrame
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 18)
+
+Template.Name = "Template"
+Template.Parent = BG
+Template.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Template.BackgroundTransparency = 1.000
+Template.Size = UDim2.new(0, 467, 0, 46)
+Template.Visible = false
+Template.Font = Enum.Font.Arial
+Template.Text = "InfinitySpy"
+Template.TextColor3 = Color3.fromRGB(255, 255, 255)
+Template.TextScaled = true
+Template.TextWrapped = true
+
+-- Scripts:
+
+local function updateCanvasSize(scrollFrame)
+    local layout = scrollFrame:FindFirstChildOfClass("UIListLayout")
+    if layout then
+        -- Adjust the CanvasSize based on the content's absolute size
+        scrollFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y)
+    end
+end
+
+local function JAOO_fake_script() -- ScrollingFrame.Handler
+    local script = Instance.new('LocalScript', ScrollingFrame)
+
+    local function addTemplate(v, typeName, methodName)
+        local t = script.Parent.Parent.Parent:WaitForChild("Template"):Clone()
+        t.Text = v.Name .. " | " .. typeName .. " | - " .. v.Name .. methodName .. " - Path : " .. v.Parent:GetFullName()
+        t.Visible = true
+        t.Parent = script.Parent
+
+        -- Update canvas size each time a new element is added
+        updateCanvasSize(script.Parent)
+    end
+
+    for _, v in pairs(game:GetDescendants()) do
+        if v:IsA("RemoteEvent") then
+            addTemplate(v, "RemoteEvent", ":FireServer(args)")
+
+            v.OnClientEvent:Connect(function(...)
+                local args = {...}
+                local argText = ""
+
+                for i, arg in ipairs(args) do
+                    argText = argText .. tostring(arg) .. (i < #args and ", " or "")
+                end
+
+                -- Update template text with actual args
+                local t = script.Parent:FindFirstChild(v.Name)
+                if t then
+                    t.Text = v.Name .. " | RemoteEvent | - " .. v.Name .. ":FireServer(" .. argText .. ") - Path : " .. v.Parent:GetFullName()
+                end
+            end)
+        end
+
+        if v:IsA("RemoteFunction") then
+            addTemplate(v, "RemoteFunction", ":InvokeClient(args) / :InvokeServer(args)")
+
+            v.OnClientInvoke = function(...)
+                local args = {...}
+                local argText = ""
+
+                for i, arg in ipairs(args) do
+                    argText = argText .. tostring(arg) .. (i < #args and ", " or "")
+                end
+
+                -- Update template text with actual args
+                local t = script.Parent:FindFirstChild(v.Name)
+                if t then
+                    t.Text = v.Name .. " | RemoteFunction | - " .. v.Name .. ":InvokeClient(" .. argText .. ") - Path : " .. v.Parent:GetFullName()
+                end
+            end
+        end
+
+        if v:IsA("BindableEvent") then
+            addTemplate(v, "BindableEvent", ":Fire(args)")
+
+            v.Event:Connect(function(...)
+                local args = {...}
+                local argText = ""
+
+                for i, arg in ipairs(args) do
+                    argText = argText .. tostring(arg) .. (i < #args and ", " or "")
+                end
+
+                -- Update template text with actual args
+                local t = script.Parent:FindFirstChild(v.Name)
+                if t then
+                    t.Text = v.Name .. " | BindableEvent | - " .. v.Name .. ":Fire(" .. argText .. ") - Path : " .. v.Parent:GetFullName()
+                end
+            end)
+        end
+    end
+end
+
+coroutine.wrap(JAOO_fake_script)()
+
+local function LMJFNA_fake_script() -- BG.Dragify 
+    local script = Instance.new('LocalScript', BG)
+
+    local UIS = game:GetService("UserInputService")
+    function dragify(Frame)
+        dragToggle = nil
+        dragSpeed = 0.15
+        dragInput = nil
+        dragStart = nil
+        dragPos = nil
+        function updateInput(input)
+            Delta = input.Position - dragStart
+            Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + Delta.X, startPos.Y.Scale, startPos.Y.Offset + Delta.Y)
+            game:GetService("TweenService"):Create(Frame, TweenInfo.new(0.15), {Position = Position}):Play()
+        end
+        Frame.InputBegan:Connect(function(input)
+            if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and UIS:GetFocusedTextBox() == nil then
+                dragToggle = true
+                dragStart = input.Position
+                startPos = Frame.Position
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragToggle = false
+                    end
+                end)
+            end
+        end)
+        Frame.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                dragInput = input
+            end
+        end)
+        game:GetService("UserInputService").InputChanged:Connect(function(input)
+            if input == dragInput and dragToggle then
+                updateInput(input)
+            end
+        end)
+    end
+    dragify(script.Parent)
+end
+
+coroutine.wrap(LMJFNA_fake_script)()
+
