@@ -13,7 +13,7 @@ local Template = Instance.new("TextLabel")
 
 UI.Name = "UI"
 UI.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-UI.Enabled = false
+UI.Enabled = true
 UI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 BG.Name = "BG"
