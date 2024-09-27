@@ -1,4 +1,3 @@
-
 -- Instances:
 
 local UI = Instance.new("ScreenGui")
@@ -14,7 +13,7 @@ local Template = Instance.new("TextLabel")
 
 UI.Name = "UI"
 UI.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-UI.Enabled = true
+UI.Enabled = false
 UI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 BG.Name = "BG"
@@ -81,10 +80,10 @@ Template.TextWrapped = true
 
 -- Scripts:
 
-local function RXOXV_fake_script() -- ScrollingFrame.Handler 
+local function NXSTGP_fake_script() -- ScrollingFrame.Handler 
 	local script = Instance.new('LocalScript', ScrollingFrame)
 
-	for _, v in pairs(game:GetDescendants()) do
+	for _, v in pairs(game.ReplicatedStorage:GetDescendants()) do
 		if v:IsA("RemoteEvent") then
 			local t = script.Parent.Parent.Parent:WaitForChild("Template"):Clone()
 			t.Text = v.Name .. " | RemoteEvent | - " .. v.Name .. ":FireServer(args) - Path : " .. v.Parent:GetFullName()
@@ -141,8 +140,8 @@ local function RXOXV_fake_script() -- ScrollingFrame.Handler
 	end
 	
 end
-coroutine.wrap(RXOXV_fake_script)()
-local function IXGTDH_fake_script() -- BG.Dragify 
+coroutine.wrap(NXSTGP_fake_script)()
+local function LCYGRFY_fake_script() -- BG.Dragify 
 	local script = Instance.new('LocalScript', BG)
 
 	local UIS = game:GetService("UserInputService")
@@ -183,4 +182,4 @@ local function IXGTDH_fake_script() -- BG.Dragify
 	dragify(script.Parent)
 	
 end
-coroutine.wrap(IXGTDH_fake_script)()
+coroutine.wrap(LCYGRFY_fake_script)()
