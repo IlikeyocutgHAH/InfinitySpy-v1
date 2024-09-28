@@ -1,0 +1,187 @@
+-- Instances:
+local UI = Instance.new("ScreenGui")
+local BG = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local Title = Instance.new("TextLabel")
+local Frame = Instance.new("Frame")
+local ScrollingFrame = Instance.new("ScrollingFrame")
+local UIListLayout = Instance.new("UIListLayout")
+local SearchBar = Instance.new("TextBox")
+local UICorner_2 = Instance.new("UICorner")
+local Template = Instance.new("TextButton")
+
+-- Properties:
+
+UI.Name = "UI"
+UI.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+UI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+BG.Name = "BG"
+BG.Parent = UI
+BG.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+BG.BorderSizePixel = 0
+BG.Position = UDim2.new(0.2306, 0, 0.3055, 0)
+BG.Size = UDim2.new(0.5386, 0, 0.5041, 0)
+
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = BG
+
+Title.Name = "Title"
+Title.Parent = BG
+Title.BackgroundTransparency = 1.000
+Title.Position = UDim2.new(0.02, 0, 0.03, 0)
+Title.Size = UDim2.new(0.16, 0, 0.065, 0)
+Title.Font = Enum.Font.Arial
+Title.Text = "InfinitySpy"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextScaled = true
+
+Frame.Parent = BG
+Frame.BackgroundTransparency = 1.000
+Frame.Position = UDim2.new(0.0199, 0, 0.13, 0)
+Frame.Size = UDim2.new(0.96, 0, 0.84, 0)
+
+ScrollingFrame.Parent = Frame
+ScrollingFrame.Active = true
+ScrollingFrame.BackgroundTransparency = 1.000
+ScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
+ScrollingFrame.ScrollBarThickness = 5
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)  -- We'll set this dynamically later
+
+UIListLayout.Parent = ScrollingFrame
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 18)
+
+SearchBar.Name = "SearchBar"
+SearchBar.Parent = Frame
+SearchBar.AnchorPoint = Vector2.new(0.5, 0)
+SearchBar.BackgroundColor3 = Color3.fromRGB(37, 37, 37)
+SearchBar.Position = UDim2.new(0.59, 0, -0.115, 0)
+SearchBar.Size = UDim2.new(0.82, 0, 0.075, 0)
+SearchBar.ZIndex = 2
+SearchBar.Font = Enum.Font.SourceSans
+SearchBar.PlaceholderText = "Search"
+SearchBar.Text = ""
+SearchBar.TextColor3 = Color3.fromRGB(204, 204, 204)
+SearchBar.TextScaled = true
+
+UICorner_2.CornerRadius = UDim.new(0, 10)
+UICorner_2.Parent = SearchBar
+
+Template.Name = "Template"
+Template.Parent = BG
+Template.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Template.BackgroundTransparency = 0.990
+Template.BorderSizePixel = 0
+Template.Size = UDim2.new(0.93, 0, 0.15, 0)
+Template.Visible = false
+Template.Font = Enum.Font.Arial
+Template.Text = "???"
+Template.TextColor3 = Color3.fromRGB(255, 255, 255)
+Template.TextScaled = true
+
+-- Functions:
+
+local function updateScrollingFrame()
+	local totalHeight = 0
+	for _, child in pairs(ScrollingFrame:GetChildren()) do
+		if child:IsA("GuiObject") and child.Visible then
+			totalHeight = totalHeight + child.Size.Y.Offset + UIListLayout.Padding.Offset
+		end
+	end
+	ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
+end
+
+local function createTemplate(v, typeName, actionText, clipboardText)
+	local t = Template:Clone()
+	t.Text = v.Name .. " | " .. typeName .. " | " .. actionText
+	t.Visible = true
+	t.Parent = ScrollingFrame
+
+	t.MouseButton1Click:Connect(function()
+		setclipboard(clipboardText)
+	end)
+end
+
+local function searchAndFilter()
+	local searchQuery = string.lower(SearchBar.Text)
+	for _, button in pairs(ScrollingFrame:GetChildren()) do
+		if button:IsA("TextButton") then
+			if searchQuery == "" or string.find(string.lower(button.Text), searchQuery) then
+				button.Visible = true
+			else
+				button.Visible = false
+			end
+		end
+	end
+	updateScrollingFrame()
+end
+
+SearchBar:GetPropertyChangedSignal("Text"):Connect(searchAndFilter)
+
+-- Event Spy:
+
+for _, v in pairs(game:GetDescendants()) do
+	if v:IsA("RemoteEvent") then
+		createTemplate(v, "RemoteEvent", ":FireServer(args)", v.Parent:GetFullName() .. "." .. v.Name .. ":FireServer()")
+
+		v.OnClientEvent:Connect(function(...)
+			local args = {...}
+			local argText = table.concat(args, ", ")
+			createTemplate(v, "RemoteEvent", ":FireServer(" .. argText .. ")", v.Parent:GetFullName() .. "." .. v.Name)
+		end)
+
+	elseif v:IsA("RemoteFunction") then
+		createTemplate(v, "RemoteFunction", ":InvokeServer(args)", v.Parent:GetFullName() .. "." .. v.Name .. ":InvokeServer()")
+
+		v.OnClientInvoke = function(...)
+			local args = {...}
+			local argText = table.concat(args, ", ")
+			createTemplate(v, "RemoteFunction", ":InvokeClient(" .. argText .. ")", v.Parent:GetFullName() .. "." .. v.Name)
+		end
+
+	elseif v:IsA("BindableEvent") then
+		createTemplate(v, "BindableEvent", ":Fire(args)", v.Parent:GetFullName() .. "." .. v.Name .. ":Fire()")
+
+		v.Event:Connect(function(...)
+			local args = {...}
+			local argText = table.concat(args, ", ")
+			createTemplate(v, "BindableEvent", ":Fire(" .. argText .. ")", v.Parent:GetFullName() .. "." .. v.Name)
+		end)
+	end
+end
+
+local function makeDraggable(frame)
+	local UIS = game:GetService("UserInputService")
+	local dragToggle = nil
+	local dragStart, startPos
+	local function update(input)
+		local delta = input.Position - dragStart
+		local newPosition = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+		frame.Position = newPosition
+	end
+	frame.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragToggle = true
+			dragStart = input.Position
+			startPos = frame.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragToggle = false
+				end
+			end)
+		end
+	end)
+	frame.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement and dragToggle then
+			update(input)
+		end
+	end)
+end
+
+makeDraggable(BG)
