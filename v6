@@ -47,7 +47,7 @@ ScrollingFrame.Active = true
 ScrollingFrame.BackgroundTransparency = 1.000
 ScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
 ScrollingFrame.ScrollBarThickness = 5
-ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 10, 0)
 
 UIListLayout.Parent = ScrollingFrame
 UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -87,7 +87,7 @@ local function updateScrollingFrame()
 	local totalHeight = 0
 	for _, child in pairs(ScrollingFrame:GetChildren()) do
 		if child:IsA("GuiObject") and child.Visible then
-			totalHeight = totalHeight + child.Size.Y.Offset + UIListLayout.Padding.Offset
+			totalHeight = totalHeight + child.Size.Y.Offset + UIListLayout.Padding.Offset + 15
 		end
 	end
 	ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
